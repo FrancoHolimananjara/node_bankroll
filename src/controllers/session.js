@@ -6,10 +6,11 @@ module.exports = {
   create: async (req, res, next) => {
     try {
       const _userId = req._userId;
-      const { start, end, buyin, buyout, place } = req.body;
+      const { start, end, inprogress, buyin, buyout, place } = req.body;
       const session = await Session.create({
         start,
         end,
+        inprogress,
         buyin,
         buyout,
         place,
