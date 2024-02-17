@@ -26,7 +26,7 @@ module.exports = {
       );
       return res.status(200).json({
         success: true,
-        message: "Account created",
+        message: `Account created ${newUser.username}`,
       });
     } catch (error) {
       next(error);
@@ -60,7 +60,7 @@ const createNewUser = async (data) => {
     const { username, email, password } = data;
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      throw Error("User with the provided email already exist!");
+      throw Error("User with the provided data is already exist!");
     }
     // hash password
     const hashedPassword = await hashData(password);
@@ -86,7 +86,10 @@ const loginUser = async (data) => {
         // compare password
         const match = await compareData(password, hashedPassword);
         if (match) {
-          return { token: generateToken(existingUser), ...existingUser._doc };
+          return {
+            token: generateToken(existingUser),
+            ...existingUser._doc,
+          };
         } else {
           return "Invalid password!";
         }
