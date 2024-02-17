@@ -86,7 +86,7 @@ const loginUser = async (data) => {
         // compare password
         const match = await compareData(password, hashedPassword);
         if (match) {
-          return { token: generateToken(existingUser) };
+          return { token: generateToken(existingUser), ...existingUser._doc };
         } else {
           return "Invalid password!";
         }
