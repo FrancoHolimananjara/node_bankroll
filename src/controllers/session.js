@@ -7,12 +7,13 @@ module.exports = {
     try {
       const _userId = req._userId;
       const { start, end, inprogress, buyin, buyout, place } = req.body;
+
       const session = await Session.create({
         start,
         end,
         inprogress,
         buyin,
-        buyout,
+        buyout: inprogress && end == null ? 0 : buyout,
         place,
         of: _userId,
       });
@@ -29,7 +30,10 @@ module.exports = {
       );
       return res.status(200).json({
         success: true,
-        message: "New session added and your bankroll is updated",
+        message:
+          inprogress && end == null
+            ? "New session in progress "
+            : "New session added and your bankroll is updated",
       });
     } catch (error) {
       next(error);
