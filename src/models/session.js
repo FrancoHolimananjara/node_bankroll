@@ -8,7 +8,6 @@ const sessionSchema = new mongoose.Schema(
     },
     end: {
       type: Date,
-      required: true,
     },
     inprogress: {
       type: Boolean,
