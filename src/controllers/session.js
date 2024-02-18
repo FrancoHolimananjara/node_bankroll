@@ -66,9 +66,14 @@ module.exports = {
     }
   },
   getAll: async (req, res, next) => {
+    const _userId = req._userId;
+    const { inprogress } = req.query;
     try {
-      const _userId = req._userId;
-      const sessions = await Session.find({ of: _userId });
+      const sessions = await Session.find(
+        inprogress
+          ? { $and: [({ of: _userId }, { inprogress })] }
+          : { of: _userId }
+      );
       if (sessions.length > 0) {
         return res.status(200).json({ sessions: sessions });
       } else {
