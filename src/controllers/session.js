@@ -62,14 +62,17 @@ module.exports = {
       const _userId = req._userId;
       const sessions = await Session.find({ of: _userId });
       if (sessions.length > 0) {
-        return res.status(200).json({ sessions });
+        return res.status(200).json({ sessions: sessions });
       } else {
-        return res.status(200).json([]);
+        return res
+          .status(404)
+          .json({ success: false, message: "Aucune session trouvée" });
       }
     } catch (error) {
       next(error);
     }
   },
+
   deleteSession: async (req, res, next) => {
     try {
       const _userId = req._userId;
