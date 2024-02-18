@@ -8,33 +8,41 @@ module.exports = {
       const _userId = req._userId;
       const { start, end, inprogress, buyin, buyout, place } = req.body;
 
-      const session = await Session.create({
-        start,
-        end,
-        inprogress,
-        buyin,
-        buyout: inprogress && end == null ? 0 : buyout,
-        place,
-        of: _userId,
-      });
-      const benef = buyout - buyin;
       // update the bankroll bank value
       const bankroll = await Bankroll.findOne({ of: _userId });
-      bankroll.bank = bankroll.bank + benef <= 0 ? 0 : bankroll.bank + benef;
-      await bankroll.save();
-      // -----
-      await User.updateOne(
-        { _id: _userId },
-        { $push: { ofsessions: { _id: session._id } } },
-        { upsert: true }
-      );
-      return res.status(200).json({
-        success: true,
-        message:
-          inprogress && end == null
-            ? "New session in progress "
-            : "New session added and your bankroll is updated",
-      });
+      console.log(bankroll.bank);
+      if (bankroll.bank > 0) {
+        const session = await Session.create({
+          start,
+          end,
+          inprogress,
+          buyin,
+          buyout: inprogress && end == null ? 0 : buyout,
+          place,
+          of: _userId,
+        });
+        const benef = buyout - buyin;
+        bankroll.bank = bankroll.bank + benef <= 0 ? 0 : bankroll.bank + benef;
+        await bankroll.save();
+        // -----
+        await User.updateOne(
+          { _id: _userId },
+          { $push: { ofsessions: { _id: session._id } } },
+          { upsert: true }
+        );
+        return res.status(200).json({
+          success: true,
+          message:
+            inprogress && end == null
+              ? "New session in progress "
+              : "New session added and your bankroll is updated",
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Bank account empty, please make 'depot'",
+        });
+      }
     } catch (error) {
       next(error);
     }
