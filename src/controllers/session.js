@@ -10,7 +10,6 @@ module.exports = {
 
       // update the bankroll bank value
       const bankroll = await Bankroll.findOne({ of: _userId });
-      console.log(bankroll.bank);
       if (bankroll.bank > 0) {
         const session = await Session.create({
           start,
@@ -77,9 +76,6 @@ module.exports = {
       if (sessions.length > 0) {
         return res.status(200).json({ sessions: sessions });
       } else {
-        return res
-          .status(404)
-          .json({ success: false, message: "Aucune session trouvée" });
       }
     } catch (error) {
       next(error);
