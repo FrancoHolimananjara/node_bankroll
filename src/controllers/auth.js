@@ -20,7 +20,7 @@ module.exports = {
       const otp = sendOtp(newUser);
       console.log(otp);
       const bankroll = await Bankroll.create({ of: newUser._id });
-      const updateNewUser = await newUser.updateOne(
+      await newUser.updateOne(
         { $push: { ofbankroll: { _id: bankroll._id } } },
         { upsert: true }
       );
@@ -46,6 +46,16 @@ module.exports = {
       } else {
         return res.status(400).json({ success: false, message: checkLog });
       }
+    } catch (error) {
+      next(error);
+    }
+  },
+  /**
+   * VERIFY OTP
+   * @returns
+   */
+  verifyOtp: async (req, res, next) => {
+    try {
     } catch (error) {
       next(error);
     }
