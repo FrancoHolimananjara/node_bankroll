@@ -1,7 +1,7 @@
 const Transaction = require("../models/transaction");
 const Bankroll = require("../models/bankroll");
 
-const { Recharge, Transfert, Retrait } = require("../config/transactionAction");
+const { Deposer, Transferer, Retirer } = require("../config/transactionAction");
 const User = require("../models/user");
 
 module.exports = {
@@ -17,7 +17,7 @@ module.exports = {
       bankroll,
       action,
       amount,
-      transfertTo,
+      transfertTo != null ? transfertTo : "",
       _userId
     );
     return res.status(200).json(response);
@@ -57,27 +57,27 @@ const TransactionActionMethode = async (
 ) => {
   var response = {};
   switch (action) {
-    case Recharge:
+    case Deposer:
       bankroll.bank += amount;
-      const updateBank = await bankroll.save();
-      const recharge = await Transaction.create({
+      await bankroll.save();
+      const deposer = await Transaction.create({
         amount,
         action,
         date: Date.now(),
         of: _userId,
       });
       message = `Vous avez deposze ${amount} Ar dans votre compte.\nVotre nouveau solde est ${bankroll.bank} Ar`;
-      MettreAJourUserTransaction(_userId, recharge);
+      MettreAJourUserTransaction(_userId, deposer);
       ChangerLaReponseDuTransactionActionMethode(
         response,
         false,
         message,
-        recharge
+        deposer
       );
       break;
-    case Transfert:
+    case Transferer:
       if (bankroll.bank < amount) {
-        const transferFailed = await Transaction.create({
+        const transfertFailed = await Transaction.create({
           amount,
           action,
           to: transfertTo,
@@ -88,16 +88,16 @@ const TransactionActionMethode = async (
         message = `Votre solde est insuffisant.\nVeuillez completer ${
           amount - bankroll.bank
         } Ar pour effectuer ce transfert.`;
-        MettreAJourUserTransaction(_userId, transferFailed);
+        MettreAJourUserTransaction(_userId, transfertFailed);
         ChangerLaReponseDuTransactionActionMethode(
           response,
           true,
           message,
-          transferFailed
+          transfertFailed
         );
       } else {
         bankroll.bank -= amount;
-        const updateBank = await bankroll.save();
+        await bankroll.save();
         const transfertSuccess = await Transaction.create({
           amount,
           action,
@@ -115,9 +115,9 @@ const TransactionActionMethode = async (
         );
       }
       break;
-    case Retrait:
+    case Retirer:
       if (bankroll.bank < amount) {
-        const retraiFailed = await Transaction.create({
+        const retraitFailed = await Transaction.create({
           amount,
           action,
           date: Date.now(),
@@ -127,16 +127,16 @@ const TransactionActionMethode = async (
         message = `Votre solde est insuffisant.\nRecharger ${
           amount - bankroll.bank
         } Ar à votre compte si vous souhaite effectuer ce retrait.`;
-        MettreAJourUserTransaction(_userId, retraiFailed);
+        MettreAJourUserTransaction(_userId, retraitFailed);
         ChangerLaReponseDuTransactionActionMethode(
           response,
           true,
           message,
-          retraiFailed
+          retraitFailed
         );
       } else {
         bankroll.bank -= amount;
-        const updateBank = await bankroll.save();
+        await bankroll.save();
         const retraitSuccess = await Transaction.create({
           amount,
           action,

@@ -1,5 +1,5 @@
 module.exports = {
-    Recharge:"Recharge",
-    Transfert:"Transfert",
-    Retrait:"Retrait"
-}
+  Deposer: "Deposer",
+  Transferer: "Transferer",
+  Retirer: "Retirer",
+};
