@@ -60,7 +60,6 @@ module.exports = {
     try {
       const { _id } = req.params;
       const { otp } = req.body;
-      console.log(_id);
 
       if (!_id || !otp) {
         throw errorHandler(400, "Empty user details are not allowed.");
@@ -95,7 +94,7 @@ module.exports = {
               { new: false, upsert: true }
             );
             await OtpVerification.deleteOne({ userId: _id });
-            return res.status(201).json({
+            return res.status(200).json({
               success: true,
               message: "User email verified successfully.",
             });
