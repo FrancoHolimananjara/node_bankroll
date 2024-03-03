@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const Bankroll = require("../models/bankroll");
+const OtpVerification = require("../models/otpVerification");
 
 // utils
 const hashData = require("../utils/hashData");
@@ -17,8 +18,8 @@ module.exports = {
       const { username, email, password } = req.body;
       const newUser = await createNewUser({ username, email, password });
       // send otp
-      const otp = sendOtp(newUser);
-      console.log(otp);
+      const responseData = await sendOtp(newUser);
+      console.log(responseData);
       const bankroll = await Bankroll.create({ of: newUser._id });
       await newUser.updateOne(
         { $push: { ofbankroll: { _id: bankroll._id } } },
@@ -27,6 +28,7 @@ module.exports = {
       return res.status(200).json({
         success: true,
         message: `Account created ${newUser.username}`,
+        data: responseData,
       });
     } catch (error) {
       next(error);
@@ -56,6 +58,50 @@ module.exports = {
    */
   verifyOtp: async (req, res, next) => {
     try {
+      const { _id } = req.params;
+      const { otp } = req.body;
+      console.log(_id);
+
+      if (!_id || !otp) {
+        throw errorHandler(400, "Empty user details are not allowed.");
+      } else {
+        const otpVerificationRecord = await OtpVerification.findOne({
+          userId: _id,
+        });
+        if (!otpVerificationRecord) {
+          // No record found
+          throw errorHandler(
+            404,
+            "Account record doesn't exist or has been verified already. Please sign up or log in."
+          );
+        }
+        // otp record exists
+        const { expiresAt } = otpVerificationRecord;
+        const hashedOtp = otpVerificationRecord.otpString;
+
+        if (expiresAt < Date(Date.now())) {
+          // User otp record has expired
+          await OtpVerification.deleteMany({ where: {} });
+          throw errorHandler(404, "code has expired. Please request again.");
+        } else {
+          const validOtp = await compareData(otp, hashedOtp);
+          if (!validOtp) {
+            // supplied otp is wrong
+            throw errorHandler(400, "Invalid code passed. Check your inbox.");
+          } else {
+            await User.findOneAndUpdate(
+              { _id },
+              { $set: { isVerified: true } },
+              { new: false, upsert: true }
+            );
+            await OtpVerification.deleteOne({ userId: _id });
+            return res.status(201).json({
+              success: true,
+              message: "User email verified successfully.",
+            });
+          }
+        }
+      }
     } catch (error) {
       next(error);
     }
@@ -115,10 +161,20 @@ const loginUser = async (data) => {
 /**
  * SEND OTP VERIFICATION
  */
-const sendOtp = ({ id, email }) => {
+const sendOtp = async ({ _id, email }) => {
   try {
     const otp = generateOtp();
-    return otp;
+    // hash the otp
+    const hashOtp = await hashData(otp);
+    const newOtpVerification = new OtpVerification({
+      userId: _id,
+      otpString: hashOtp,
+      expiresAt: Date.now() + 90000,
+    });
+    // save the otp record
+    await newOtpVerification.save();
+    //await sendEmail(mailOptions);
+    return { userId: _id, email, otp };
   } catch (error) {
     throw error;
   }
