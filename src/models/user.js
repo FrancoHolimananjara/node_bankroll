@@ -31,13 +31,5 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre("remove", async function (next) {
-  const user = this;
-  await Bankroll.deleteMany({ of: user._id });
-  await Session.deleteMany({ of: user._id });
-  await Transaction.deleteMany({ of: user._id });
-  next();
-});
-
 const User = mongoose.model("User", userSchema);
 module.exports = User;
