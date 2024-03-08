@@ -72,7 +72,7 @@ module.exports = {
         inprogress
           ? { $and: [({ of: _userId }, { inprogress })] }
           : { of: _userId }
-      );
+      ).sort({ createdAt: -1 });
       if (sessions.length > 0) {
         return res.status(200).json({ sessions: sessions });
       } else {

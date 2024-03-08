@@ -1,5 +1,5 @@
 module.exports = {
-  Deposer: "Deposer",
-  Transferer: "Transferer",
-  Retirer: "Retirer",
+  Dépôt: "Dépôt",
+  Transfert: "Transfert",
+  Retrait: "Retrait",
 };

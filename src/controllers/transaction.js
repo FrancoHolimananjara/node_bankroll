@@ -1,7 +1,7 @@
 const Transaction = require("../models/transaction");
 const Bankroll = require("../models/bankroll");
 
-const { Deposer, Transferer, Retirer } = require("../config/transactionAction");
+const { Dépôt, Transfert, Retrait } = require("../config/transactionAction");
 const User = require("../models/user");
 
 module.exports = {
@@ -42,7 +42,7 @@ module.exports = {
     const _userId = req._userId;
     const transactions = await Transaction.find({ of: _userId });
     if (transactions.length == 0) {
-      return res.status(200).json([]);
+      return res.status(404).json([]);
     }
     return res.status(200).json({ transactions });
   },
@@ -57,25 +57,25 @@ const TransactionActionMethode = async (
 ) => {
   var response = {};
   switch (action) {
-    case Deposer:
+    case Dépôt:
       bankroll.bank += amount;
       await bankroll.save();
-      const deposer = await Transaction.create({
+      const dépôt = await Transaction.create({
         amount,
         action,
         date: Date.now(),
         of: _userId,
       });
       message = `Vous avez deposze ${amount} Ar dans votre compte.\nVotre nouveau solde est ${bankroll.bank} Ar`;
-      MettreAJourUserTransaction(_userId, deposer);
+      MettreAJourUserTransaction(_userId, dépôt);
       ChangerLaReponseDuTransactionActionMethode(
         response,
         false,
         message,
-        deposer
+        dépôt
       );
       break;
-    case Transferer:
+    case Transfert:
       if (bankroll.bank < amount) {
         const transfertFailed = await Transaction.create({
           amount,
@@ -115,7 +115,7 @@ const TransactionActionMethode = async (
         );
       }
       break;
-    case Retirer:
+    case Retrait:
       if (bankroll.bank < amount) {
         const retraitFailed = await Transaction.create({
           amount,
