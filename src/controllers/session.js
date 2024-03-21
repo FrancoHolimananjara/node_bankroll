@@ -53,13 +53,7 @@ module.exports = {
       const session = await Session.find({
         $and: [{ _id: _sessionId }, { of: _userId }],
       });
-      if (session) {
-        return res.status(200).json({ session });
-      } else {
-        return res
-          .status(404)
-          .json({ success: false, message: "Session not found" });
-      }
+      return res.status(200).json({ session: session });
     } catch (error) {
       next(error);
     }
@@ -73,10 +67,7 @@ module.exports = {
           ? { $and: [({ of: _userId }, { inprogress })] }
           : { of: _userId }
       ).sort({ createdAt: -1 });
-      if (sessions.length > 0) {
-        return res.status(200).json({ sessions: sessions });
-      } else {
-      }
+      return res.status(200).json({ sessions: sessions });
     } catch (error) {
       next(error);
     }

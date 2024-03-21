@@ -1,7 +1,4 @@
 const mongoose = require("mongoose");
-const Session = require("./session");
-const Bankroll = require("./bankroll");
-const Transaction = require("./transaction");
 
 const userSchema = new mongoose.Schema(
   {

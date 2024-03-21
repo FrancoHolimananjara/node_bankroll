@@ -41,9 +41,6 @@ module.exports = {
   getAll: async (req, res) => {
     const _userId = req._userId;
     const transactions = await Transaction.find({ of: _userId });
-    if (transactions.length == 0) {
-      return res.status(404).json([]);
-    }
     return res.status(200).json({ transactions });
   },
 };
