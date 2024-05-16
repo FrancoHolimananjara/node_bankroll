@@ -41,6 +41,7 @@ module.exports = {
   login: async (req, res, next) => {
     try {
       const { username, password } = req.body;
+      console.log(req.body);
       const checkLog = await loginUser({ username, password });
 
       if (typeof checkLog === "object") {

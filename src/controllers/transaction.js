@@ -4,47 +4,6 @@ const Bankroll = require("../models/bankroll");
 const { Dépôt, Transfert, Retrait } = require("../config/transactionAction");
 const User = require("../models/user");
 
-module.exports = {
-  add: async (req, res) => {
-    const _userId = req._userId;
-    const { amount, action, transfertTo } = req.body;
-    const bankroll = await Bankroll.findOne({ of: _userId });
-    if (!bankroll) {
-      // Handle the case where no bankroll is found for the given _userId
-      return res.status(404).json({ message: "Bankroll not found" });
-    }
-    const response = await TransactionActionMethode(
-      bankroll,
-      action,
-      amount,
-      transfertTo != null ? transfertTo : "",
-      _userId
-    );
-    return res.status(200).json(response);
-  },
-  getOne: async (req, res) => {
-    const _userId = req._userId;
-    const { _transactionId } = req.params;
-    const transaction = await Transaction.findOne({
-      $and: [{ _id: _transactionId }, { of: _userId }],
-    });
-    if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: "Unknown transaction",
-      });
-    }
-    return res.status(200).json({
-      transaction,
-    });
-  },
-  getAll: async (req, res) => {
-    const _userId = req._userId;
-    const transactions = await Transaction.find({ of: _userId });
-    return res.status(200).json({ transactions });
-  },
-};
-
 const TransactionActionMethode = async (
   bankroll,
   action,
@@ -175,4 +134,54 @@ const ChangerLaReponseDuTransactionActionMethode = (
   response.failed = failed;
   response.message = message;
   response.transactionType = transactionType;
+};
+
+module.exports = {
+  add: async (req, res) => {
+    const _userId = req._userId;
+    const { amount, action, transfertTo } = req.body;
+    console.log(req.body);
+    const bankroll = await Bankroll.findOne({ of: _userId });
+    if (!bankroll) {
+      // Handle the case where no bankroll is found for the given _userId
+      return res.status(404).json({ message: "Bankroll not found" });
+    }
+    const response = await TransactionActionMethode(
+      bankroll,
+      action,
+      amount,
+      transfertTo != null ? transfertTo : "",
+      _userId
+    );
+    return res.status(200).json(response);
+  },
+  getOne: async (req, res) => {
+    const _userId = req._userId;
+    const { _transactionId } = req.params;
+    const transaction = await Transaction.findOne({
+      $and: [{ _id: _transactionId }, { of: _userId }],
+    });
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: "Unknown transaction",
+      });
+    }
+    return res.status(200).json({
+      transaction,
+    });
+  },
+  getAll: async (req, res) => {
+    const _userId = req._userId;
+    const { action } = req.query;
+    const transactions = action
+      ? await Transaction.find({ of: _userId, action }).sort({
+          createdAt: -1,
+        })
+      : await Transaction.find({ of: _userId }).sort({
+          createdAt: -1,
+        });
+    return res.status(200).json({ transactions });
+  },
+  TransactionActionMethode: TransactionActionMethode, // Exporting the method
 };

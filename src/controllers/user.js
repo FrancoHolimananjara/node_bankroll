@@ -23,10 +23,12 @@ module.exports = {
       return res.status(500).json({ success: false, message: e.message });
     }
   },
+  // delete account
   deleteAccount: async (req, res) => {
     try {
       const id = req._userId;
       const user = await User.findById({ _id: id });
+      console.log(user);
       if (user) {
         await Bankroll.deleteOne({ of: id });
         await Session.deleteMany({ of: id });

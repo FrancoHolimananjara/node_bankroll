@@ -1,6 +1,7 @@
 const Session = require("../models/session");
 const Bankroll = require("../models/bankroll");
 const User = require("../models/user");
+const { TransactionActionMethode } = require("./transaction");
 
 module.exports = {
   create: async (req, res, next) => {
@@ -10,6 +11,10 @@ module.exports = {
 
       // update the bankroll bank value
       const bankroll = await Bankroll.findOne({ of: _userId });
+      if (!bankroll) {
+        // Handle the case where no bankroll is found for the given _userId
+        return res.status(404).json({ message: "Bankroll not found" });
+      }
       if (bankroll.bank > 0) {
         const session = await Session.create({
           start,
@@ -21,8 +26,25 @@ module.exports = {
           of: _userId,
         });
         const benef = buyout - buyin;
-        bankroll.bank = bankroll.bank + benef <= 0 ? 0 : bankroll.bank + benef;
-        await bankroll.save();
+        const transaction =
+          inprogress && end
+            ? await TransactionActionMethode(
+                bankroll,
+                "Transfert",
+                buyin,
+                place,
+                _userId
+              )
+            : await TransactionActionMethode(
+                bankroll,
+                "Dépôt",
+                benef,
+                place,
+                _userId
+              );
+        console.log(transaction);
+        // bankroll.bank = bankroll.bank + benef <= 0 ? 0 : bankroll.bank + benef;
+        // await bankroll.save();
         // -----
         await User.updateOne(
           { _id: _userId },
@@ -68,6 +90,23 @@ module.exports = {
           : { of: _userId }
       ).sort({ createdAt: -1 });
       return res.status(200).json({ sessions: sessions });
+    } catch (error) {
+      next(error);
+    }
+  },
+  finishSessionInProgress: async (req, res, next) => {
+    const _userId = req._userId;
+    const { inprogress } = req.query;
+    const { _sessionId } = req.params;
+    try {
+      const session =
+        inprogress &&
+        (await Session.find({
+          $and: [({ _id: _sessionId }, { of: _userId }, { inprogress })],
+        }).sort({ createdAt: -1 }));
+      session.inprogress = false;
+
+      // const transaction = await TransactionActionMethode();
     } catch (error) {
       next(error);
     }
